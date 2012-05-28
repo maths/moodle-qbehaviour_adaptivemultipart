@@ -8,11 +8,4 @@ a try at different times (whenever its inputs are complete, valid and have chang
 since the last try). This question behaviour was created for use with STACK
 https://github.com/sangwinc/moodle-qtype_stack/
 
-To install using git, type this command in the root of your Moodle install
-    git clone git://github.com/timhunt/moodle-qbehaviour_adaptivemultipart.git question/behaviour/adaptivemultipart
-    echo question/behaviour/adaptivemultipart >> .git/info/exclude
-
-Then download the zip from
-    https://github.com/timhunt/moodle-qbehaviour_adaptivemultipart/zipball/master
-unzip it into the question/behaviour folder, and rename the new
-folder to adaptivemultipart.
+To install, either [download the zip file](https://github.com/timhunt/moodle-qbehaviour_adaptivemultipart/zipball/master), unzip it, and place it in the directory `moodle\question\behaviour\dfcbmexplicitvaildate`. (You will need to rename the directory `moodle-qbehaviour_adaptivemultipart -> adaptivemultipart`.) Alternatively, get the code using git by running the following command in the top level folder of your Moodle install: `git clone git://github.com/timhunt/moodle-qbehaviour_adaptivemultipart.git question/behaviour/adaptivemultipart`.
