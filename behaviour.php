@@ -51,6 +51,13 @@ interface question_automatically_gradable_with_multiple_parts
      *      sumbission counts as a new try at that part.
      */
     public function grade_parts_that_can_be_graded(array $response, array $lastgradedresponses, $finalsubmit);
+
+    /**
+     * Get a list of all the parts of the question, and the weight they have within
+     * the question.
+     * @return array part identifier => weight. The sum of all the weights should be 1.
+     */
+    public function get_parts_and_weights();
 }
 
 
@@ -65,21 +72,14 @@ class qbehaviour_adaptivemultipart_part_result {
     /** @var string the name of the part this relates to. */
     public $partname;
 
-    /**
-     * @var float the maximum contribution this part can make to the overall
-     * question mark. The sum $partweight for all parts must be 1.
-     */
-    public $partweight;
-
     /** @var float the fraction for this response, before any penaly is applied. */
     public $rawfraction;
 
     /** @var float the additional penalty that this try incurs. */
     public $penalty;
 
-    public function __construct($partname, $partweight, $rawfraction, $penalty) {
+    public function __construct($partname, $rawfraction, $penalty) {
         $this->partname    = $partname;
-        $this->partweight  = $partweight;
         $this->rawfraction = $rawfraction;
         $this->penalty     = $penalty;
     }
@@ -147,7 +147,13 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $currenttries = array();
         $currentpenalties = array();
         $currentfractions = array();
-        foreach ($this->qa->get_reverse_step_iterator() as $step) {
+
+        $steps = $this->qa->get_reverse_step_iterator();
+        if ($finalsubmit) {
+            $steps->next();
+        }
+
+        foreach ($steps as $step) {
             foreach ($step->get_behaviour_data() as $name => $value) {
                 if (preg_match('~_tries_(.*)$~', $name, $matches)) {
                     $partname = $matches[1];
@@ -159,7 +165,12 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
             }
         }
 
-        $response = $pendingstep->get_qt_data();
+        if ($finalsubmit) {
+            $laststep = $this->qa->get_last_step();
+            $response = $laststep->get_qt_data();
+        } else {
+            $response = $pendingstep->get_qt_data();
+        }
         $partscores = $this->question->grade_parts_that_can_be_graded($response, $lastgradedresponses, $finalsubmit);
 
         foreach ($partscores as $partname => $partscore) {
@@ -181,8 +192,15 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         if (empty($currentfractions)) {
             $totalfraction = null;
         } else {
-            // TODO actually, this needs to be a weighted sum, according to $partscore->weight.
-            $totalfraction = array_sum($currentfractions);
+            $totalweight = 0;
+            $totalfraction = 0;
+            foreach ($this->question->get_parts_and_weights() as $index => $weight) {
+                $totalweight += $weight;
+                if (array_key_exists($index, $currentfractions)) {
+                    $totalfraction += $weight * $currentfractions[$index];
+                }
+            }
+            $totalfraction = $totalfraction/$totalweight;
         }
 
         // TODO get overall state. We don't acutally know the complete lists of parts here
