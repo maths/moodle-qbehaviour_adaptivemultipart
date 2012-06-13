@@ -58,6 +58,12 @@ interface question_automatically_gradable_with_multiple_parts
      * @return array part identifier => weight. The sum of all the weights should be 1.
      */
     public function get_parts_and_weights();
+
+    /**
+     * @param array $response the current response being processed. Response variable name => value.
+     * @return bool true if any part of the response is invalid.
+     */
+    public function is_any_part_invalid(array $response);
 }
 
 
@@ -147,6 +153,7 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $currenttries = array();
         $currentpenalties = array();
         $currentfractions = array();
+        $currentrawfractions = array();
 
         $steps = $this->qa->get_reverse_step_iterator();
         if ($finalsubmit) {
@@ -161,6 +168,7 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                     $currenttries[$partname] = $value;
                     $currentpenalties[$partname] = $step->get_behaviour_var('_penalty_' . $partname);
                     $currentfractions[$partname] = $step->get_behaviour_var('_fraction_' . $partname);
+                    $currentrawfractions[$partname] = $step->get_behaviour_var('_rawfraction_' . $partname);
                 }
             }
         }
@@ -180,17 +188,21 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                 $currentfractions[$partname] = 0;
             }
 
-            // TODO take note of $this->applypenalties in this processing.
-
             $pendingstep->set_behaviour_var('_tries_' . $partname, $currenttries[$partname] + 1);
-            $pendingstep->set_behaviour_var('_penalty_' . $partname, $currentpenalties[$partname] + $partscore->penalty);
+            if ($this->applypenalties) {
+                $pendingstep->set_behaviour_var('_penalty_' . $partname, $currentpenalties[$partname] + $partscore->penalty);
+            } else {
+                $pendingstep->set_behaviour_var('_penalty_' . $partname, 0);
+            }
             $pendingstep->set_behaviour_var('_rawfraction_' . $partname, $partscore->rawfraction);
+            $currentrawfractions[$partname] = $partscore->rawfraction;
             $currentfractions[$partname] = max($partscore->rawfraction - $currentpenalties[$partname], $currentfractions[$partname]);
             $pendingstep->set_behaviour_var('_fraction_' . $partname, $currentfractions[$partname]);
         }
 
         if (empty($currentfractions)) {
             $totalfraction = null;
+            $overallstate = question_state::$gaveup;
         } else {
             $totalweight = 0;
             $totalfraction = 0;
@@ -201,11 +213,30 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                 }
             }
             $totalfraction = $totalfraction/$totalweight;
-        }
 
-        // TODO get overall state. We don't acutally know the complete lists of parts here
-        // so this probably needs to be returned from question->grade_parts_that_can_be_graded
-        $overallstate = question_state::$gradedpartial;
+            $allright = true;
+            $allwrong = true;
+            foreach ($this->question->get_parts_and_weights() as $index => $weight) {
+                if (array_key_exists($index, $currentrawfractions)) {
+                    $partstate = question_state::graded_state_for_fraction($currentrawfractions[$index]);
+                    if ($partstate != question_state::$gradedright) {
+                        $allright = false;
+                    }
+                    if ($partstate != question_state::$gradedwrong) {
+                        $allwrong = false;
+                    }
+                } else {
+                    $allright = false;
+                }
+            }
+            if ($allright) {
+                $overallstate = question_state::$gradedright;
+            } else if ($allwrong) {
+                $overallstate = question_state::$gradedwrong;
+            } else {
+                $overallstate = question_state::$gradedpartial;
+            }
+        }
 
         return array($totalfraction, $overallstate);
     }
@@ -220,7 +251,9 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $pendingstep->set_fraction($totalfraction);
 
         $prevstep = $this->qa->get_last_step();
-        if ($prevstep->get_state() == question_state::$complete) {
+        if ($this->question->is_any_part_invalid($pendingstep->get_qt_data())) {
+            $pendingstep->set_state(question_state::$invalid);
+        } else if ($prevstep->get_state() == question_state::$complete) {
             $pendingstep->set_state(question_state::$complete);
         } else if ($overallstate == question_state::$gradedright) {
             $pendingstep->set_state(question_state::$complete);
