@@ -44,6 +44,7 @@ class qbehaviour_adaptivemultipart_walkthrough_test extends qbehaviour_walkthrou
         // qtype_stack, and no other qtypes use this behaviour. Therefore, we
         // don't have any real tests here.
         // See https://github.com/sangwinc/moodle-qtype_stack/blob/master/tests/walkthrough_adaptive_test.php
+        // for the tests that exist.
         $this->assertTrue(true);
     }
 }

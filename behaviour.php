@@ -125,7 +125,6 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
     }
 
     public function adjust_display_options(question_display_options $options) {
-        // TODO probably needs to be changed.
         parent::adjust_display_options($options);
         $options->feedback = true;
     }
@@ -202,7 +201,8 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
             }
             $pendingstep->set_behaviour_var('_rawfraction_' . $partname, $partscore->rawfraction);
             $currentrawfractions[$partname] = $partscore->rawfraction;
-            $currentfractions[$partname] = max($partscore->rawfraction - $currentpenalties[$partname], $currentfractions[$partname]);
+            $currentfractions[$partname] = max($partscore->rawfraction - $currentpenalties[$partname],
+                                                    $currentfractions[$partname]);
             $pendingstep->set_behaviour_var('_fraction_' . $partname, $currentfractions[$partname]);
         }
 
