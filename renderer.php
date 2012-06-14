@@ -36,7 +36,9 @@ require_once($CFG->dirroot . '/question/behaviour/adaptive/renderer.php');
  * @copyright  2012 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qbehaviour_adaptivemultipart_renderer extends qbehaviour_adaptive_renderer {
+class qbehaviour_adaptivemultipart_renderer extends qbehaviour_renderer {
 
-    // TODO I don't yet have any idea yet what, if anything, we need to override here.
+    public function controls(question_attempt $qa, question_display_options $options) {
+        return $this->submit_button($qa, $options);
+    }
 }
