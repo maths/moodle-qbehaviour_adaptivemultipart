@@ -162,14 +162,20 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
         foreach ($steps as $step) {
             foreach ($step->get_behaviour_data() as $name => $value) {
-                if (preg_match('~_tries_(.*)$~', $name, $matches)) {
-                    $partname = $matches[1];
-                    $lastgradedresponses[$partname] = $step->get_qt_data();
-                    $currenttries[$partname] = $value;
-                    $currentpenalties[$partname] = $step->get_behaviour_var('_penalty_' . $partname);
-                    $currentfractions[$partname] = $step->get_behaviour_var('_fraction_' . $partname);
-                    $currentrawfractions[$partname] = $step->get_behaviour_var('_rawfraction_' . $partname);
+                if (!preg_match('~_tries_(.*)$~', $name, $matches)) {
+                    continue;
                 }
+
+                $partname = $matches[1];
+                if (array_key_exists($partname, $currenttries)) {
+                    continue; // Already found more recent data for this PRT.
+                }
+
+                $lastgradedresponses[$partname] = $step->get_qt_data();
+                $currenttries[$partname] = $value;
+                $currentpenalties[$partname] = $step->get_behaviour_var('_penalty_' . $partname);
+                $currentfractions[$partname] = $step->get_behaviour_var('_fraction_' . $partname);
+                $currentrawfractions[$partname] = $step->get_behaviour_var('_rawfraction_' . $partname);
             }
         }
 
