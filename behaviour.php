@@ -99,9 +99,6 @@ class qbehaviour_adaptivemultipart_part_result {
  * corresponding inputs have been completed, and so counts the tries, and
  * does the penalty calculations for each part separately.
  *
- * TODO not sure if subclassing qbehaviour_adaptive is feasible. We may have to
- * subclass question_behaviour_with_save instead.
- *
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -120,7 +117,6 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
     }
 
     public function get_state_string($showcorrectness) {
-        // TODO probably needs to be changed.
         return parent::get_state_string($showcorrectness);
     }
 
