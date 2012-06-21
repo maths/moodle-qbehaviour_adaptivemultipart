@@ -191,14 +191,16 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
             $pendingstep->set_behaviour_var('_tries_' . $partname, $currenttries[$partname] + 1);
             if ($this->applypenalties) {
-                $pendingstep->set_behaviour_var('_penalty_' . $partname, $currentpenalties[$partname] + $partscore->penalty);
+                $pendingstep->set_behaviour_var('_penalty_' . $partname,
+                        min($currentpenalties[$partname] + $partscore->penalty, 1)); // Cap cumulative penalty at 1.
+
             } else {
                 $pendingstep->set_behaviour_var('_penalty_' . $partname, 0);
             }
             $pendingstep->set_behaviour_var('_rawfraction_' . $partname, $partscore->rawfraction);
             $currentrawfractions[$partname] = $partscore->rawfraction;
             $currentfractions[$partname] = max($partscore->rawfraction - $currentpenalties[$partname],
-                                                    $currentfractions[$partname]);
+                                                    $currentfractions[$partname]); // Current fraction never decreases.
             $pendingstep->set_behaviour_var('_fraction_' . $partname, $currentfractions[$partname]);
         }
 
