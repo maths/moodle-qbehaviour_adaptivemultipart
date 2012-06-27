@@ -62,8 +62,7 @@ class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
     }
 
     public function test_correct_no_penalty() {
-        $this->assertEquals('<div class="correctness correct">' . get_string('correct', 'question') . '</div>' .
-                '<div class="gradingdetails">' .
+        $this->assertEquals('<div class="gradingdetails">' .
                 get_string('gradingdetails', 'qbehaviour_adaptive',
                         array('cur' => '1.00', 'raw' => '1.00', 'max' => '1.00')) . '</div>',
                 $this->renderer->render_adaptive_marks(new qbehaviour_adaptivemultipart_mark_details(
@@ -71,8 +70,7 @@ class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
     }
 
     public function test_partial_first_try() {
-        $this->assertEquals('<div class="correctness partiallycorrect">' . get_string('partiallycorrect', 'question') . '</div>' .
-                '<div class="gradingdetails">' .
+        $this->assertEquals('<div class="gradingdetails">' .
                 get_string('gradingdetails', 'qbehaviour_adaptive',
                         array('cur' => '0.50', 'raw' => '0.50', 'max' => '1.00')) . ' ' .
                 get_string('gradingdetailspenalty', 'qbehaviour_adaptive', '0.10') . '</div>',
@@ -82,8 +80,7 @@ class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
 
     public function test_partial_second_try() {
         $mark = array('cur' => '0.80', 'raw' => '0.90', 'max' => '1.00');
-        $this->assertEquals('<div class="correctness partiallycorrect">' . get_string('partiallycorrect', 'question') . '</div>' .
-                '<div class="gradingdetails">' .
+        $this->assertEquals('<div class="gradingdetails">' .
                 get_string('gradingdetails', 'qbehaviour_adaptive', $mark) . ' ' .
                 get_string('gradingdetailsadjustment', 'qbehaviour_adaptive', $mark) . ' ' .
                 get_string('gradingdetailspenalty', 'qbehaviour_adaptive', '0.10') . ' ' .
@@ -94,8 +91,7 @@ class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
 
     public function test_correct_third_try() {
         $mark = array('cur' => '0.80', 'raw' => '1.00', 'max' => '1.00');
-        $this->assertEquals('<div class="correctness partiallycorrect">' . get_string('partiallycorrect', 'question') . '</div>' .
-                '<div class="gradingdetails">' .
+        $this->assertEquals('<div class="gradingdetails">' .
                 get_string('gradingdetails', 'qbehaviour_adaptive', $mark) . ' ' .
                 get_string('gradingdetailsadjustment', 'qbehaviour_adaptive', $mark) . '</div>',
                 $this->renderer->render_adaptive_marks(new qbehaviour_adaptivemultipart_mark_details(
@@ -104,8 +100,7 @@ class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
 
     public function test_correct_third_try_if_we_dont_increase_penalties_for_wrong() {
         $mark = array('cur' => '0.80', 'raw' => '1.00', 'max' => '1.00');
-        $this->assertEquals('<div class="correctness partiallycorrect">' . get_string('partiallycorrect', 'question') . '</div>' .
-                '<div class="gradingdetails">' .
+        $this->assertEquals('<div class="gradingdetails">' .
                 get_string('gradingdetails', 'qbehaviour_adaptive', $mark) . ' ' .
                 get_string('gradingdetailsadjustment', 'qbehaviour_adaptive', $mark) . '</div>',
                 $this->renderer->render_adaptive_marks(new qbehaviour_adaptivemultipart_mark_details(
