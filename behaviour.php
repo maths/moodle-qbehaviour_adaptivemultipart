@@ -191,6 +191,7 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
             $pendingstep->set_behaviour_var('_tries_' . $partname, $currenttries[$partname] + 1);
             if ($this->applypenalties) {
+                $pendingstep->set_behaviour_var('_curpenalty_' . $partname, $currentpenalties[$partname]);
                 $pendingstep->set_behaviour_var('_penalty_' . $partname,
                         min($currentpenalties[$partname] + $partscore->penalty, 1)); // Cap cumulative penalty at 1.
 
@@ -280,5 +281,95 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $pendingstep->set_state($overallstate);
         $pendingstep->set_new_response_summary($this->question->summarise_response($pendingstep->get_qt_data()));
         return question_attempt::KEEP;
+    }
+
+    public function get_part_mark_details($index) {
+        $step = $this->qa->get_last_step_with_behaviour_var('_tries_' . $index);
+
+        if (!$step) {
+            return new qbehaviour_adaptivemultipart_mark_details(question_state::$todo);
+        }
+
+        $weights = $this->question->get_parts_and_weights();
+
+        $state = question_state::graded_state_for_fraction(
+                        $step->get_behaviour_var('_rawfraction_' . $index));
+
+        $details = new qbehaviour_adaptivemultipart_mark_details($state);
+
+        $details->maxmark    = $weights[$index];
+        $details->actualmark = $step->get_behaviour_var('_fraction_' . $index) * $details->maxmark;
+        $details->rawmark    = $step->get_behaviour_var('_rawfraction_' . $index) * $details->maxmark;
+
+        $details->currentpenalty = $step->get_behaviour_var('_curpenalty_' . $index) * $details->maxmark;
+        $details->totalpenalty   = $step->get_behaviour_var('_penalty_' . $index) * $details->maxmark;
+
+        $details->improvable = !$state->is_correct();
+
+        return $details;
+    }
+}
+
+
+/**
+ * This class encapsulates all the information about the current state-of-play
+ * scoring-wise. It is used to communicate between the beahviour and the renderer.
+ *
+ * This class is mostly a copy-and-paste of some code that has been proposed to
+ * go into core Moodle. See http://tracker.moodle.org/browse/MDL-34066. For now
+ * it is copied here, so that STACK will work with the standard release of Moodle 2.3.
+ *
+ * @copyright  2012 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qbehaviour_adaptivemultipart_mark_details {
+    /** @var question_state the current state of the question. */
+    public $state;
+
+    /** @var float the maximum mark for this question. */
+    public $maxmark;
+
+    /** @var float the current mark for this question. */
+    public $actualmark;
+
+    /** @var float the raw mark for this question before penalties were applied. */
+    public $rawmark;
+
+    /** @var float the the amount of additional penalty this attempt attracted. */
+    public $currentpenalty;
+
+    /** @var float the total that will apply to future attempts. */
+    public $totalpenalty;
+
+    /** @var bool whether it is possible for this mark to be improved in future. */
+    public $improvable;
+
+    /**
+     * Constructor.
+     * @param question_state $state
+     */
+    public function __construct($state, $maxmark = null, $actualmark = null, $rawmark = null,
+            $currentpenalty = null, $totalpenalty = null, $improvable = null) {
+        $this->state          = $state;
+        $this->maxmark        = $maxmark;
+        $this->actualmark     = $actualmark;
+        $this->rawmark        = $rawmark;
+        $this->currentpenalty = $currentpenalty;
+        $this->totalpenalty   = $totalpenalty;
+        $this->improvable     = $improvable;
+    }
+
+    /**
+     * Get the marks, formatted to a certain number of decimal places, in the
+     * form required by calls like get_string('gradingdetails', 'qbehaviour_adaptive', $a).
+     * @param int $markdp the number of decimal places required.
+     * @return array ready to substitute into language strings.
+     */
+    public function get_formatted_marks($markdp) {
+        return array(
+            'max' => format_float($this->maxmark,    $markdp),
+            'cur' => format_float($this->actualmark, $markdp),
+            'raw' => format_float($this->rawmark,    $markdp),
+        );
     }
 }
