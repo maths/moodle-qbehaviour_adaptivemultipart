@@ -297,7 +297,7 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
         $details = new qbehaviour_adaptivemultipart_mark_details($state);
 
-        $details->maxmark    = $weights[$index];
+        $details->maxmark    = $weights[$index] * $this->qa->get_max_mark();
         $details->actualmark = $step->get_behaviour_var('_fraction_' . $index) * $details->maxmark;
         $details->rawmark    = $step->get_behaviour_var('_rawfraction_' . $index) * $details->maxmark;
 
