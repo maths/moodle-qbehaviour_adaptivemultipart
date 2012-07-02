@@ -60,6 +60,20 @@ interface question_automatically_gradable_with_multiple_parts
     public function get_parts_and_weights();
 
     /**
+     * Are two responses the same insofar as a certain part is concerned. This is
+     * used so we do not penalise the same mistake twice.
+     *
+     * @param string $part a part indentifier. Whether the two responses are the same
+     *      for the given part.
+     * @param array $prevresponse the responses previously recorded for this question,
+     *      as returned by {@link question_attempt_step::get_qt_data()}
+     * @param array $newresponse the new responses, in the same format.
+     * @return bool whether the two sets of responses are the same for the given
+     *      part.
+     */
+    public function is_same_response_for_part($part, array $prevresponse, array $newresponse);
+
+    /**
      * @param array $response the current response being processed. Response variable name => value.
      * @return bool true if any part of the response is invalid.
      */
@@ -143,12 +157,21 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
     protected function process_parts_that_can_be_graded(question_attempt_pending_step $pendingstep, $finalsubmit) {
 
+        // Get the response we are processing.
+        if ($finalsubmit) {
+            $laststep = $this->qa->get_last_step();
+            $response = $laststep->get_qt_data();
+        } else {
+            $response = $pendingstep->get_qt_data();
+        }
+
         // Get last graded response for each part.
         $lastgradedresponses = array();
         $currenttries = array();
         $currentpenalties = array();
         $currentfractions = array();
         $currentrawfractions = array();
+        $prevseenresponse = array();
 
         $steps = $this->qa->get_reverse_step_iterator();
         if ($finalsubmit) {
@@ -161,12 +184,21 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                     continue;
                 }
 
+                $oldresponse = $step->get_qt_data();
+
                 $partname = $matches[1];
                 if (array_key_exists($partname, $currenttries)) {
-                    continue; // Already found more recent data for this PRT.
+                    // We already have a most recent try for this part, but now
+                    // have an older response that was a try for this part, and
+                    // we want to know if the current response is the same as this.
+                    if ($this->question->is_same_response_for_part($partname, $oldresponse, $response)) {
+                        $prevseenresponse[$partname] = true;
+                    }
+
+                    continue;
                 }
 
-                $lastgradedresponses[$partname] = $step->get_qt_data();
+                $lastgradedresponses[$partname] = $oldresponse;
                 $currenttries[$partname] = $value;
                 $currentpenalties[$partname] = $step->get_behaviour_var('_penalty_' . $partname);
                 $currentfractions[$partname] = $step->get_behaviour_var('_fraction_' . $partname);
@@ -174,12 +206,6 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
             }
         }
 
-        if ($finalsubmit) {
-            $laststep = $this->qa->get_last_step();
-            $response = $laststep->get_qt_data();
-        } else {
-            $response = $pendingstep->get_qt_data();
-        }
         $partscores = $this->question->grade_parts_that_can_be_graded($response, $lastgradedresponses, $finalsubmit);
 
         foreach ($partscores as $partname => $partscore) {
@@ -189,9 +215,13 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                 $currentfractions[$partname] = 0;
             }
 
+            if (!empty($prevseenresponse[$partname])) {
+                $partscore->penalty = 0;
+            }
+
             $pendingstep->set_behaviour_var('_tries_' . $partname, $currenttries[$partname] + 1);
             if ($this->applypenalties) {
-                $pendingstep->set_behaviour_var('_curpenalty_' . $partname, $currentpenalties[$partname]);
+                $pendingstep->set_behaviour_var('_curpenalty_' . $partname, $partscore->penalty);
                 $pendingstep->set_behaviour_var('_penalty_' . $partname,
                         min($currentpenalties[$partname] + $partscore->penalty, 1)); // Cap cumulative penalty at 1.
 
