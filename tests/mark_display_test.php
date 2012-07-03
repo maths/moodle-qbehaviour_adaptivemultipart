@@ -40,6 +40,7 @@ require_once(dirname(__FILE__) . '/../behaviour.php');
  *
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @group qtype_stack
  */
 class qbehaviour_adaptivemultipart_mark_display_test extends basic_testcase {
     /** @var qbehaviour_adaptivemultipart_renderer the renderer to test. */

@@ -88,7 +88,7 @@ class qbehaviour_adaptivemultipart_renderer extends qbehaviour_renderer {
         $output = '';
         $mark = $details->get_formatted_marks($options->markdp);
 
-        // Print details of grade adjustment due to penalties
+        // Print details of grade adjustment due to penalties.
         if ($details->rawmark != $details->actualmark) {
             $output .= ' ' . get_string('gradingdetailsadjustment', 'qbehaviour_adaptive', $mark);
         }
