@@ -29,6 +29,7 @@ $plugin->requires  = 2012062500;
 $plugin->cron      = 0;
 $plugin->component = 'qbehaviour_adaptivemultipart';
 $plugin->maturity  = MATURITY_BETA;
+$plugin->release = '3.0 beta 1 for Moodle 2.3+';
 
 $plugin->dependencies = array(
     'qbehaviour_adaptive' => 2011102700
