@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012070200;
+$plugin->version   = 2012101000;
 $plugin->requires  = 2012062500;
 $plugin->cron      = 0;
 $plugin->component = 'qbehaviour_adaptivemultipart';

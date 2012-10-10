@@ -98,10 +98,14 @@ class qbehaviour_adaptivemultipart_part_result {
     /** @var float the additional penalty that this try incurs. */
     public $penalty;
 
-    public function __construct($partname, $rawfraction, $penalty) {
+    /** @var bool if any errors occurred during processing. */
+    public $errors;
+
+    public function __construct($partname, $rawfraction, $penalty, $errors = false) {
         $this->partname    = $partname;
         $this->rawfraction = $rawfraction;
         $this->penalty     = $penalty;
+        $this->errors      = $errors;
     }
 }
 
@@ -137,6 +141,20 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
     public function adjust_display_options(question_display_options $options) {
         parent::adjust_display_options($options);
         $options->feedback = true;
+    }
+
+    protected function is_same_response(question_attempt_step $pendingstep) {
+        if (!parent::is_same_response($pendingstep)) {
+            return false;
+        }
+        // If the question part of the response is exactly the same, then
+        // we need to check if the previous action was a save, and this action
+        // is a submit.
+        if ($pendingstep->has_behaviour_var('submit') &&
+                !$this->qa->get_last_step()->has_behaviour_var('submit')) {
+            return false;
+        }
+        return true;
     }
 
     public function process_action(question_attempt_pending_step $pendingstep) {
@@ -209,6 +227,11 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $partscores = $this->question->grade_parts_that_can_be_graded($response, $lastgradedresponses, $finalsubmit);
 
         foreach ($partscores as $partname => $partscore) {
+            if ($partscore->errors) {
+                $pendingstep->set_behaviour_var('_errors_' . $partname, 1);
+                continue;
+            }
+
             if (!array_key_exists($partname, $currentpenalties)) {
                 $currenttries[$partname]     = 0;
                 $currentpenalties[$partname] = 0;
@@ -313,10 +336,15 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         return question_attempt::KEEP;
     }
 
+    /**
+     * Get the current mark details for a particular part.
+     * @param string $index the part index.
+     * @return qbehaviour_adaptivemultipart_mark_details the marks information.
+     */
     public function get_part_mark_details($index) {
         $step = $this->qa->get_last_step_with_behaviour_var('_tries_' . $index);
 
-        if (!$step) {
+        if (!$step->has_behaviour_var('_tries_' . $index)) {
             return new qbehaviour_adaptivemultipart_mark_details(question_state::$todo);
         }
 
@@ -337,6 +365,33 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $details->improvable = !$state->is_correct();
 
         return $details;
+    }
+
+    /**
+     * Get the step where a particular part was last graded.
+     * @param string $index the part index.
+     * @return question_attempt_step the relevant step, or null if there is not one.
+     */
+    public function get_last_graded_response_step_for_part($index) {
+        $stepsiterator = $this->qa->get_reverse_step_iterator();
+        foreach ($stepsiterator as $step) {
+            if ($step->has_behaviour_var('_tries_' . $index) || $step->has_behaviour_var('_errors_' . $index)) {
+                break;
+            }
+        }
+
+        if (!$step->has_behaviour_var('_tries_' . $index) && !$step->has_behaviour_var('_errors_' . $index)) {
+            // This part has never been graded.
+            return null;
+        } else if ($step->get_qt_data()) {
+            // This step has the data that was actually graded.
+            return $step;
+        } else {
+            // This can happen when "Submit all and finish" is processed. The grading
+            // is actually done the step after the results are submitted.
+            $stepsiterator->next();
+            return $stepsiterator->current();
+        }
     }
 }
 
