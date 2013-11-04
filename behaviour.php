@@ -130,6 +130,18 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $this->applypenalties = 'adaptivenopenalty' !== $preferredbehaviour;
     }
 
+    public function init_first_step(question_attempt_step $step, $variant) {
+        $step->set_behaviour_var('_applypenalties', (int) $this->applypenalties);
+        parent::init_first_step($step, $variant);
+    }
+
+    public function apply_attempt_state(question_attempt_step $step) {
+        if ($step->has_behaviour_var('_applypenalties')) {
+            $this->applypenalties = (bool) $step->get_behaviour_var('_applypenalties');
+        }
+        parent::apply_attempt_state($step);
+    }
+
     public function is_compatible_question(question_definition $question) {
         return $question instanceof question_automatically_gradable_with_multiple_parts;
     }
