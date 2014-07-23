@@ -151,8 +151,28 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
     }
 
     public function adjust_display_options(question_display_options $options) {
+        // Save some bits so we can put them back later.
+        $save = clone($options);
+
+        // Do the default thing.
         parent::adjust_display_options($options);
-        $options->feedback = true;
+
+        // Restore original feedback options.
+        $options->feedback        = $save->feedback;
+        $options->correctness     = $save->correctness;
+        $options->numpartscorrect = $save->numpartscorrect;
+    }
+    
+    public function adjust_display_options_for_part($index, question_display_options $options) {
+        $step = $this->qa->get_last_step_with_behaviour_var('_tries_' . $index);
+
+        if (!$this->qa->get_state()->is_finished() && !$step->has_behaviour_var('_tries_' . $index)) {
+           // There never was a try at this part and question is not finished
+           // Hide feedback.
+           $options->feedback = question_display_options::HIDDEN;
+           $options->numpartscorrect = question_display_options::HIDDEN;
+           $options->correctness = question_display_options::HIDDEN;
+        }
     }
 
     protected function is_same_response(question_attempt_step $pendingstep) {
