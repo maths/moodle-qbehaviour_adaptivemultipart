@@ -162,16 +162,27 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         $options->correctness     = $save->correctness;
         $options->numpartscorrect = $save->numpartscorrect;
     }
-    
+
+    /**
+     * Update some display options to take into account the state of a given part.
+     * Since the display options are updated in-place, you probably want to call
+     * this on a clone of the real display options.
+     *
+     * (Note, this method is not used by STACK. If you want to see an example of
+     * its use, have a look at qtype_formulas.
+     *
+     * @param string $index the part index.
+     * @param question_display_options some display options. Will be updated in place.
+     */
     public function adjust_display_options_for_part($index, question_display_options $options) {
         $step = $this->qa->get_last_step_with_behaviour_var('_tries_' . $index);
 
         if (!$this->qa->get_state()->is_finished() && !$step->has_behaviour_var('_tries_' . $index)) {
-           // There never was a try at this part and question is not finished
-           // Hide feedback.
-           $options->feedback = question_display_options::HIDDEN;
-           $options->numpartscorrect = question_display_options::HIDDEN;
-           $options->correctness = question_display_options::HIDDEN;
+            // There never was a try at this part and question is not finished
+            // hide feedback.
+            $options->feedback = question_display_options::HIDDEN;
+            $options->numpartscorrect = question_display_options::HIDDEN;
+            $options->correctness = question_display_options::HIDDEN;
         }
     }
 
