@@ -146,10 +146,6 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         return $question instanceof question_automatically_gradable_with_multiple_parts;
     }
 
-    public function get_state_string($showcorrectness) {
-        return parent::get_state_string($showcorrectness);
-    }
-
     public function adjust_display_options(question_display_options $options) {
         // Save some bits so we can put them back later.
         $save = clone($options);
@@ -313,7 +309,7 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                     $totalfraction += $weight * $currentfractions[$index];
                 }
             }
-            $totalfraction = $totalfraction/$totalweight;
+            $totalfraction = $totalfraction / $totalweight;
 
             $allright = true;
             $allwrong = true;
