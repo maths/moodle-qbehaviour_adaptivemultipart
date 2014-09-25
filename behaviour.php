@@ -344,7 +344,8 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
 
         $pendingstep->set_fraction($totalfraction);
         $pendingstep->set_state($overallstate);
-        $pendingstep->set_new_response_summary($this->question->summarise_response($pendingstep->get_qt_data()));
+        $pendingstep->set_new_response_summary($this->question->summarise_response(
+                $this->qa->get_last_step()->get_qt_data()));
         return question_attempt::KEEP;
     }
 
