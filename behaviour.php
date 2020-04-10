@@ -389,13 +389,18 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
         }
 
         $weights = $this->question->get_parts_and_weights();
+        $weight = 0;
+        // Purely formative PRTs will not occur in the weights array.
+        if (array_key_exists($index, $weights)) {
+            $weight = $weights[$index];
+        }
 
         $state = question_state::graded_state_for_fraction(
                         $step->get_behaviour_var('_rawfraction_' . $index));
 
         $details = new qbehaviour_adaptivemultipart_mark_details($state);
 
-        $details->maxmark    = $weights[$index] * $this->qa->get_max_mark();
+        $details->maxmark    = $weight * $this->qa->get_max_mark();
         $details->actualmark = $step->get_behaviour_var('_fraction_' . $index) * $details->maxmark;
         $details->rawmark    = $step->get_behaviour_var('_rawfraction_' . $index) * $details->maxmark;
 
