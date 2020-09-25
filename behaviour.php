@@ -309,7 +309,9 @@ class qbehaviour_adaptivemultipart extends qbehaviour_adaptive {
                     $totalfraction += $weight * $currentfractions[$index];
                 }
             }
-            $totalfraction = $totalfraction / $totalweight;
+            if ($totalweight > 0) {
+                $totalfraction = $totalfraction / $totalweight;
+            }
 
             $allright = true;
             $allwrong = true;
