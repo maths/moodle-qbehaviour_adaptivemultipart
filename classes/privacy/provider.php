@@ -17,16 +17,16 @@
  * Privacy Subsystem implementation for qbehaviour_adaptivemultipart.
  *
  * @package    qbehaviour_adaptivemultipart
- * @copyright  2018 The Open University 
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2018 The Open University.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
 namespace qbehaviour_adaptivemultipart\privacy;
 defined('MOODLE_INTERNAL') || die();
 /**
  * Privacy Subsystem for qbehaviour_adaptivemultipart implementing null_provider.
  *
- * @copyright  2018 The Open University 
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2018 The Open University.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
 class provider implements \core_privacy\local\metadata\null_provider {
     /**
